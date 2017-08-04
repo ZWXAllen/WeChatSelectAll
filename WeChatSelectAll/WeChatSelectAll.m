@@ -16,7 +16,11 @@ CHDeclareClass(CMessageMgr);
 
 CHOptimizedMethod(2, self, void, CMessageMgr, AddMsg, id, arg1, MsgWrap, id, wrap){
     
-    int type = object_getIvar(wrap, class_getInstanceVariable(objc_getClass("CMessageWrap"), "m_uiMessageType"));
+    Ivar uiMessageTypeIvar = class_getInstanceVariable(objc_getClass("CMessageWrap"), "m_uiMessageType");
+    ptrdiff_t offset = ivar_getOffset(uiMessageTypeIvar);
+    unsigned char *stuffBytes = (unsigned char *)(__bridge void *)wrap;
+    NSUInteger m_uiMessageType = * ((NSUInteger *)(stuffBytes + offset));
+    
     NSString *knFromUser = object_getIvar(wrap, class_getInstanceVariable(objc_getClass("CMessageWrap"), "m_nsFromUsr"));
     NSString *knToUsr = object_getIvar(wrap, class_getInstanceVariable(objc_getClass("CMessageWrap"), "m_nsToUsr"));
     NSString *knContent = object_getIvar(wrap, class_getInstanceVariable(objc_getClass("CMessageWrap"), "m_nsContent"));
@@ -26,7 +30,7 @@ CHOptimizedMethod(2, self, void, CMessageMgr, AddMsg, id, arg1, MsgWrap, id, wra
     id manager = [contactManager performSelector:@selector(getService:) withObject:[objc_getClass("CContactMgr") class]];
     id selfContact = [manager performSelector:@selector(getSelfContact)];
     
-    if (type == 1){
+    if (m_uiMessageType == 1){
         NSString *tmpFromUser = [selfContact performSelector:@selector(m_nsUsrName)];
         if ([knFromUser isEqualToString:tmpFromUser]) {
             if ([knToUsr hasSuffix:@"@chatroom"]) {
